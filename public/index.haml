@@ -1,0 +1,12 @@
+!!! 5
+%head
+  %title RPI HTTPS WSS
+  %script{ :src => 'zepto.min.js' }
+  %script{ :src => 'zepto.cookie.min.js' }
+%body
+  %h1 RPI HTTPS WSS from #{(defined? hostname) ? hostname : ''} version #{(defined? version) ? version : ''}
+  %h2 Hello World of Pi
+  #current_time
+    Time updates here
+  %script{ :src => 'index.js' }
+

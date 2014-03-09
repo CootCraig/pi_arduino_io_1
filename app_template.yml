@@ -1,0 +1,94 @@
+---
+http_host: '0.0.0.0'
+http_port: 4430
+logins:
+  craig: turtle
+  donna: shark
+---
+log4r_config:
+  loggers:
+    - name      : base
+      level     : INFO
+      additive  : true
+      outputters:
+        - file_info
+    - name      :  base::App
+      level     : INFO
+      additive  : false
+      outputters:
+        - file_info
+    - name      :  base::HttpRequestRouter
+      level     : DEBUG
+      additive  : false
+      outputters:
+        - file_debug
+    - name      :  base::HttpServer
+      level     : DEBUG
+      additive  : false
+      outputters:
+        - file_debug
+    - name      :  base::InfoExample
+      level     : INFO
+      additive  : false
+      outputters:
+        - file_info
+    - name      :  base::RequestHtml
+      level     : DEBUG
+      additive  : false
+      outputters:
+        - file_debug
+    - name      :  base::RequestJs
+      level     : DEBUG
+      additive  : false
+      outputters:
+        - file_debug
+    - name      :  base::TimeServer
+      level     : DEBUG
+      additive  : false
+      outputters:
+        - file_debug
+    - name      :  base::VerboseExample
+      level     : DEBUG
+      additive  : false
+      outputters:
+        - file_debug
+  outputters:
+    - type     : StdoutOutputter
+      name     : console_info
+      level    : INFO
+      formatter:
+        date_pattern: '%Y-%m-%d %H:%M:%S'
+        pattern     : '%C %l %d :: %m'
+        type        : PatternFormatter
+    - type     : StdoutOutputter
+      name     : console_debug
+      level    : DEBUG
+      formatter:
+        date_pattern: '%Y-%m-%d %H:%M:%S'
+        pattern     : '%C %l %d :: %m'
+        type        : PatternFormatter
+    - type        : RollingFileOutputter
+      name        : file_info
+      level       : INFO
+      filename    : "/var/log/coot.net/reel_https_auth_websock.txt"
+      maxsize     : 8388608
+      max_backups : 6
+      trunc       : 'false'
+      formatter   :
+        date_pattern: '%Y-%m-%d %H:%M:%S'
+        pattern     : '%C %l %d :: %m'
+        type        : PatternFormatter
+    - type        : RollingFileOutputter
+      name        : file_debug
+      level       : DEBUG
+      filename    : "/var/log/coot.net/reel_https_auth_websock.txt"
+      maxsize     : 8388608
+      max_backups : 6
+      trunc       : 'false'
+      formatter   :
+        date_pattern: '%Y-%m-%d %H:%M:%S'
+        pattern     : '%C %l %d :: %m'
+        type        : PatternFormatter
+---
+
+

@@ -1,0 +1,21 @@
+!!! 5
+%head
+  %title Login
+  %script{ :src => 'zepto.min.js' }
+  %script{ :src => 'zepto.cookie.min.js' }
+%body
+  %table
+    %tr
+      %td Login:
+      %td 
+        %input#login_input{:type => 'text', :value => (defined? login) ? login : '' }
+    %tr
+      %td Password:
+      %td
+        %input#password_input{:type => 'password', :value => (defined? password) ? password : '' }
+    %tr
+      %td{:colspan => '2'}
+        %button{:id => 'login_submit'}
+          Submit Login
+  %script{ :src => 'login.js' }
+
