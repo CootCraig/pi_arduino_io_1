@@ -39,7 +39,7 @@ void loop()
 {
   timer.run();
   writeOutput();
-  //readInput();
+  readSerialInput();
   //doCommand();
 }
 
@@ -48,127 +48,145 @@ void loop()
 // and execute the command
 void doCommand()
 {
-  int copy_size = 0;
-  int cr_pos = -1;
-  int null_pos = -1;
+}
 
-  cr_pos = findCharInBuf(input_buf,IO_BUF_SIZE,'\r');
-  if (cr_pos >= 0)
+// fifoCmdBuf* functions
+// ensure CmdBuf is always null terminated
+// so strlen(CmdBuf) will always work
+// each cmd is terminated with <cr>
+//
+// void fifoCmdBufEnqueueChar(char * buf, int size, char add_char)
+// void fifoCmdBufClear(char * buf, int size)
+// bool fifoCmdBufCommandAvailable(char * buf, int size)
+// char fifoCmdBufDequeueChar(char * src_buf, int src_size)
+// void fifoCmdBufDequeueCommand(char * src_buf, int src_size, char * dst_buf, int dst_size)
+// void fifoCmdBufEnqueueCommand(char * src_buf, int src_size, char * dst_buf, char * dst_size)
+// void fifoCmdBufPeekCommand(char * src_buf, int src_size, char * dst_buf, int dst_size)
+
+void fifoCmdBufClear(char * buf, int size)
+{
+  memset(buf,0,size);
+}
+// A command is available if a <cr> is in the buf
+bool fifoCmdBufCommandAvailable(char * buf, int size)
+{
+  bool available = false;
+  char * cr_ptr = NULL;
+  cr_ptr = (char *)memchr(buf,'\r',(size-1));
+  if (cr_ptr)
   {
-    // Only command for now is to use the command string
-    // as a timer report prefix
-    if (cr_pos >= PREFIX_BUF_SIZE)
+    available = true;
+  }
+  return available;
+}
+char fifoCmdBufDequeueChar(char * src_buf, int src_size)
+{
+  char first_char = '\0';
+  char * zero_fill_ptr = NULL;
+
+  first_char = src_buf[0];
+  memcpy(src_buf,(src_buf+1),(src_size-1));
+  zero_fill_ptr = src_buf + (src_size-2);
+  memset(zero_fill_ptr,0,2);
+
+  return first_char;
+}
+// dequeue a command from src_buf and put into dst_buf
+// destructive of dst_buf
+void fifoCmdBufDequeueCommand(char * src_buf, int src_size, char * dst_buf, int dst_size)
+{
+  int cmd_len = 0;
+  char * cr_ptr = NULL;
+  char xfer_char = '\0';
+
+  memset(dst_buf,0,dst_size);
+  cr_ptr = (char *)memchr(src_buf,'\r',(src_size-1));
+  if (cr_ptr)
+  {
+    cmd_len = (cr_ptr-src_buf) + 1;
+    for (int ii=0; ii<cmd_len; ++ii)
     {
-      copy_size = PREFIX_BUF_SIZE - 1;
+      xfer_char = fifoCmdBufDequeueChar(src_buf,src_size);
+      fifoCmdBufEnqueueChar(dst_buf, dst_size, xfer_char);
     }
-    else
-    {
-      copy_size = cr_pos;
-    }
-    memset(prefix_string,0,PREFIX_BUF_SIZE);
-    memcpy(prefix_string,(input_buf),copy_size);
-    leftShiftBuf(input_buf,IO_BUF_SIZE,(cr_pos+1));
+  }
+}
+// Add a character, make room with a left shift if needed
+void fifoCmdBufEnqueueChar(char * buf, int size, char add_char)
+{
+  char * add_ptr = NULL;
+  char * null_ptr = NULL;
+  int space_left = 0;
+  int space_used = 0;
+
+  null_ptr = (char *)memchr(buf,'\0',size);
+  space_used = null_ptr - buf;
+  if ((space_used+1) >= size)
+  {
+    // left shift to make room to add
+    memcpy(buf,(buf+1),(size-1));
+    add_ptr = null_ptr - 1;
   }
   else
   {
-    null_pos = findCharInBuf(input_buf,IO_BUF_SIZE,'\0');
-    if ((null_pos+1) >= IO_BUF_SIZE)
-    {
-      // input_buf is full and no <cr> found
-      // fill input_buf with null so more characters can be received
-      memset(input_buf,0,IO_BUF_SIZE);
-    }
+    add_ptr = null_ptr; // already have room to add
   }
+  *add_ptr = add_char;
 }
-// Return the position of a character in a buffer or -1 if not found
-// Assume the buffer must always end with a null
-// so do not check the last position
-int findCharInBuf(char *buf, int buf_size, char char_to_find)
+void fifoCmdBufEnqueueCommand(char * src_buf, int src_size, char * dst_buf, int dst_size)
 {
-  char *foundCharPtr = NULL;
-  int foundPos = -1;
-
-  foundCharPtr = (char *) memchr(buf,buf_size,char_to_find);
-  if (foundCharPtr)
+  int ii;
+  int src_strlen = 0;
+  src_strlen = strlen(src_buf);
+  for (ii=0; ii<src_strlen; ++ii)
   {
-    foundPos = foundCharPtr - buf;
-    if ((foundPos+1) >= buf_size)
-    {
-      foundPos = -1;
-    }
+    fifoCmdBufEnqueueChar(dst_buf, dst_size, *(src_buf+ii));
   }
-  return foundPos;
 }
-// Read a character from serial if available and add to input_buf
-// if there is room
-// input_buf must always end with a null
-void readInput()
+void fifoCmdBufPeekCommand(char * src_buf, int src_size, char * dst_buf, int dst_size)
 {
-  char input_char;
-  int insert_pos = -1;
-  if (Serial.available())
+  int cmd_len = 0;
+  char * cr_ptr = NULL;
+  char xfer_char = '\0';
+
+  memset(dst_buf,0,dst_size);
+  cr_ptr = (char *)memchr(src_buf,'\r',(src_size-1));
+  if (cr_ptr)
   {
-    insert_pos = findCharInBuf(input_buf,IO_BUF_SIZE,'\0');
-    if (insert_pos >= 0)
+    cmd_len = (cr_ptr-src_buf) + 1;
+    for (int ii=0; ii<cmd_len; ++ii)
     {
-      input_buf[insert_pos] = input_char;
+      xfer_char = src_buf[ii];
+      fifoCmdBufEnqueueChar(dst_buf, dst_size, xfer_char);
     }
   }
 }
-// Left shift the buf with zero fill
-void leftShiftBuf(char *buf,int buf_size,int remove_size)
+void readSerialInput(void)
 {
-  int clear_pos = 0;
-  int move_size = 0;
+  while (Serial.available()) {
+    char inChar = (char)Serial.read(); 
 
-  if (buf_size > 0)
-  {
-    if (remove_size >= buf_size)
-    {
-      memset(buf,0,buf_size);
-    }
-    else
-    {
-      move_size = buf_size - remove_size;
-      memcpy(buf,(buf+remove_size),move_size);
-      clear_pos = buf_size - remove_size;
-      memset((buf+clear_pos),0,remove_size);
-    }
+    fifoCmdBufEnqueueChar(input_buf, IO_BUF_SIZE, inChar);
   }
 }
-
-// Write to Serial, called on a timer
-// write timer_write_buf and a write count
+// Periodic write to Serial to test RPi <-> Arduino
 void timerWrite()
 {
-  int append_pos_in_output_buf;
-  int write_len = 0;
-  int space_left_in_output_buf;
+  char write_buf[80];
 
-  memset(timer_write_buf,0,TIMER_WRITE_BUF_SIZE);
   ++prefix_write_count;
-  sprintf(timer_write_buf,"%d\n",prefix_write_count);
-  write_len = strlen(timer_write_buf);
-
-  append_pos_in_output_buf = findCharInBuf(output_buf,IO_BUF_SIZE,'\0');
-
-  if (append_pos_in_output_buf >= 0)
-  {
-    space_left_in_output_buf = IO_BUF_SIZE - append_pos_in_output_buf - 1;
-    if (write_len < space_left_in_output_buf) {
-      memcpy((output_buf+append_pos_in_output_buf),timer_write_buf,write_len);
-    }
-  }
+  sprintf(write_buf,"timerWrite %d\r",prefix_write_count);
+  fifoCmdBufEnqueueCommand(write_buf,sizeof(write_buf),output_buf,IO_BUF_SIZE);
 }
 
 // Remove the first character in output_buf and write to serial
 void writeOutput()
 {
-  char first_char = output_buf[0];
+  char first_char = '\0';
+  first_char = fifoCmdBufDequeueChar(output_buf, IO_BUF_SIZE);
   if (first_char != '\0')
   {
-    Serial.write(output_buf,1);
-    leftShiftBuf(output_buf,IO_BUF_SIZE,1);
+    Serial.write(first_char);
   }
 }
 

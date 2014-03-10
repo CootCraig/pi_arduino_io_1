@@ -127,8 +127,9 @@ http://playground.arduino.cc/Code/SimpleTimer#.UxzPBB993Ac
 ==================
 http://www.nongnu.org/avr-libc/user-manual/modules.html
 ==================
+================== Arduino code notes
 ==================
-==================
+
 ==================
 ==================
 ==================
