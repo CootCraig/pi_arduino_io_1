@@ -1,6 +1,14 @@
 /* vim: set ft=cpp: */
 /*
+ * Test Serial IO between Raspberry Pi and Arduino
  *
+ * This sketch writes to the serial port on a 5 second timer
+ * prefix 99
+ * The 99 is actually a count of how many writes have been done since the
+ * prefix was changed.
+ *
+ * Send "different prefix\r" to the Arduio will change the timer output to
+ * different prefix 1
  *
  */
 #include <stdio.h>
