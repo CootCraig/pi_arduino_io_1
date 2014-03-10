@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/celluloid/celluloid-io.git
-  revision: 7ce68a55cfcc5bf8d95295cc287d112e082ad509
+  revision: 39e7dc8e7a340ccaa0fa09f8dbfdb7fb7fc074c5
   specs:
     celluloid-io (0.16.0.pre)
       celluloid (>= 0.16.0.pre)
@@ -8,14 +8,14 @@ GIT
 
 GIT
   remote: https://github.com/celluloid/celluloid.git
-  revision: 2ff16d6d28f47db0144a08f463f12635979cf6ab
+  revision: f5edcf9c1130d9dccbb6873e93c845ecbc8a5863
   specs:
     celluloid (0.16.0.pre)
       timers (~> 2.0.0)
 
 GIT
   remote: https://github.com/celluloid/reel.git
-  revision: 93cd32c0a1d2a5dff979bf35243d4e043c6743e7
+  revision: 5afcb7f9a2ddd966dc960c612ddb9c5c2fbd5f41
   specs:
     reel (0.5.0.pre)
       celluloid (>= 0.15.1)
@@ -26,7 +26,7 @@ GIT
 
 GIT
   remote: https://github.com/tarcieri/http.git
-  revision: 78036f3fb72b5f0b34627494f7adcf2337379c8d
+  revision: e8e90f06be4fff73ffa9e7f386074290f28e2ee7
   specs:
     http (0.6.0.pre)
       http_parser.rb (~> 0.6.0)
@@ -39,20 +39,16 @@ GEM
       unf (>= 0.0.5, < 1.0.0)
     haml (4.0.5)
       tilt
-    hitimes (1.2.1)
     hitimes (1.2.1-java)
     htmlentities (4.3.1)
     http-cookie (1.0.2)
       domain_name (~> 0.5)
-    http_parser.rb (0.6.0)
     http_parser.rb (0.6.0-java)
     jruby-openssl (0.9.4)
       bouncy-castle-java (>= 1.5.0147)
-    json (1.8.1)
     json (1.8.1-java)
     log4r (1.1.10)
     nesty (1.0.2)
-    nio4r (1.0.0)
     nio4r (1.0.0-java)
     tilt (2.0.0)
     timers (2.0.0)
