@@ -11,6 +11,7 @@
 SimpleTimer timer;
 
 #define IO_BUF_SIZE 200
+char cmd_buf[IO_BUF_SIZE];
 char input_buf[IO_BUF_SIZE];
 char output_buf[IO_BUF_SIZE];
 
@@ -40,7 +41,7 @@ void loop()
   timer.run();
   writeOutput();
   readSerialInput();
-  //doCommand();
+  doCommand();
 }
 
 // Look for a <cr> terminated string at the beginning of input_buf
@@ -48,6 +49,28 @@ void loop()
 // and execute the command
 void doCommand()
 {
+  int cmd_len = 0;
+  char * cr_ptr = NULL;
+  int xfer_len = 0;
+
+  fifoCmdBufDequeueCommand(input_buf,IO_BUF_SIZE,cmd_buf,IO_BUF_SIZE);
+  cmd_len = strlen(cmd_buf);
+  if (cmd_len > 0)
+  {
+    if (cmd_len > 1)
+    {
+      // The only command for now is to change the prefix_string
+      cr_ptr = (char *)memchr(cmd_buf,'\r',IO_BUF_SIZE);
+      if (cr_ptr)
+      {
+        *cr_ptr = '\0'; // Do not want <cr> in prefix_string
+        xfer_len = strlen(cmd_buf);
+        memset(prefix_string,0,PREFIX_BUF_SIZE);
+        fifoCmdBufEnqueueCommand(cmd_buf,xfer_len,prefix_string,PREFIX_BUF_SIZE);
+        prefix_write_count = 0;
+      }
+    }
+  }
 }
 
 // fifoCmdBuf* functions
@@ -172,11 +195,17 @@ void readSerialInput(void)
 // Periodic write to Serial to test RPi <-> Arduino
 void timerWrite()
 {
+  int prefix_len = 0;
   char write_buf[80];
+  int write_buf_len = 0;
 
   ++prefix_write_count;
-  sprintf(write_buf,"timerWrite %d\r",prefix_write_count);
-  fifoCmdBufEnqueueCommand(write_buf,sizeof(write_buf),output_buf,IO_BUF_SIZE);
+  sprintf(write_buf," %d\r",prefix_write_count);
+
+  prefix_len = strlen(prefix_string);
+  fifoCmdBufEnqueueCommand(prefix_string,prefix_len,output_buf,IO_BUF_SIZE);
+  write_buf_len = strlen(write_buf);
+  fifoCmdBufEnqueueCommand(write_buf,write_buf_len,output_buf,IO_BUF_SIZE);
 }
 
 // Remove the first character in output_buf and write to serial
