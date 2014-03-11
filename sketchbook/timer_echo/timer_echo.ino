@@ -211,6 +211,7 @@ void readSerialInput(void)
 void timerWrite()
 {
   int prefix_len = 0;
+  int timer_write_len = 0;
   char write_buf[80];
   int write_buf_len = 0;
 
@@ -218,10 +219,13 @@ void timerWrite()
   memset(write_buf,0,sizeof(write_buf));
   sprintf(write_buf," %d\r",prefix_write_count);
 
+  memset(timer_write_buf,0,TIMER_WRITE_BUF_SIZE);
   prefix_len = strlen(prefix_string);
-  fifoCmdBufEnqueueString(prefix_string,prefix_len,output_buf,IO_BUF_SIZE);
+  fifoCmdBufEnqueueString(prefix_string,prefix_len,timer_write_buf,TIMER_WRITE_BUF_SIZE);
   write_buf_len = strlen(write_buf);
-  fifoCmdBufEnqueueString(write_buf,write_buf_len,output_buf,IO_BUF_SIZE);
+  fifoCmdBufEnqueueString(write_buf,write_buf_len,timer_write_buf,TIMER_WRITE_BUF_SIZE);
+  timer_write_len = strlen(timer_write_buf);
+  fifoCmdBufEnqueueString(timer_write_buf,timer_write_len,output_buf,IO_BUF_SIZE);
 }
 
 // Remove the first character in output_buf and write to serial
