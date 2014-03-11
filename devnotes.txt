@@ -6,7 +6,7 @@ cd ~/dev/pi_arduino_io_1/
 cp -R sketchbook ~/
 
 --- socat connects /dev/ttyUSB0 to TCP port 54321
-socat tcp-l:54321,reuseaddr,fork file:/dev/ttyUSB0,b9600,nonblock,waitlock=/var/run/ttyUSB0.lock
+socat tcp-l:54321,reuseaddr,fork file:/dev/ttyUSB0,b9600,nonblock,raw,echo=0,waitlock=/var/run/ttyUSB0.lock
 
 --- socat connect terminal to TCP port 54321
 socat - tcp:localhost:54321
@@ -137,7 +137,47 @@ http://www.nongnu.org/avr-libc/user-manual/modules.html
 ==================
 
 ==================
-==================
+http://www.iheartrobotics.com/2010/02/debugginng-serial-interfaces.html
+Debugging Serial Interfaces
+
+As mentioned, socat looks pretty useful program for debugging serial problems. So here is how to get it working.
+
+------------------
+http://sudanlandge.blogspot.com/2013/04/socat-examples.html
+socat for tcp port to serial port :
+
+    ./socat TCP4-LISTEN:54322 /dev/ttyUSB1,raw,echo 0,crnl
+    the above command establishes a two way connection between serial port /dev/ttyUSB0 and the tcp port 54322.
+
+------------------
+http://stackoverflow.com/questions/20043776/bi-directional-socket-to-tcp-communication
+As some commenters already mentioned, you can't make a TCP connection with two listeners. For a TCP connection you always need a server (listener) and a client.
+
+As your software is already a server (listening on port 7758) socat should be run in client mode (connecting to your server).
+
+This can be done with the option TCP:<host>:<port>, for example like this (adapted your example, not tested!):
+
+socat -d -d -d -d -x TCP:localhost:7758 FILE:/dev/ttyUSB0,b9600,raw
+
+------------------
+http://www.raspberrypi.org/forum/viewtopic.php?f=63&t=66776&p=489032&hilit=socat#p489032
+by CopterRichie » Fri Jan 17, 2014 12:29 pm
+I added the following to /etc/inittab for my application. Works great so far. socat will listen to port 8899 and when a connection comes in, it will open the serial port. Once the connection is done, a respawn is done making it ready for a new connection.
+
+CODE: SELECT ALL
+#Spawn a getty on Raspberry Pi serial line
+#T0:23:respawn:/sbin/getty -L ttyAMA0 115200 vt100
+T0:23:respawn:/usr/bin/socat TCP-LISTEN:8899,reuseaddr /dev/ttyAMA0,raw,echo=0,crnl,b115200
+
+------------------
+
+================== socat attempts
+# socat 
+tcp-l:54321,reuseaddr,fork
+
+socat TCP-LISTEN:54321,reuseaddr /dev/ttyUSB0,raw,echo=0,crnl,b9600
+# read working. write problems?
+
 ==================
 ==================
 ==================
