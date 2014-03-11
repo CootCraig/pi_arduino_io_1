@@ -26,7 +26,7 @@ GIT
 
 GIT
   remote: https://github.com/tarcieri/http.git
-  revision: e8e90f06be4fff73ffa9e7f386074290f28e2ee7
+  revision: d2c5a1ded3ebaa82e5dc34142e7777c3a19c674e
   specs:
     http (0.6.0.pre)
       http_parser.rb (~> 0.6.0)
