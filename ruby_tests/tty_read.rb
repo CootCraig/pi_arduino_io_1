@@ -45,7 +45,7 @@ class PrefixTimer
     counter = 1
     every (20) do
       counter += 1
-      Celluloid::Actor[:pi_sock].async.write_to_pi("p#{counter}")
+      Celluloid::Actor[:pi_sock].async.write_to_pi("p#{counter}\r")
     end
   end
 end
