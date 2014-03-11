@@ -74,7 +74,7 @@ void doCommand()
         *cr_ptr = '\0'; // Do not want <cr> in prefix_string
         xfer_len = strlen(cmd_buf);
         memset(prefix_string,0,PREFIX_BUF_SIZE);
-        fifoCmdBufEnqueueCommand(cmd_buf,xfer_len,prefix_string,PREFIX_BUF_SIZE);
+        fifoCmdBufEnqueueString(cmd_buf,xfer_len,prefix_string,PREFIX_BUF_SIZE);
         prefix_write_count = 0;
       }
     }
@@ -91,7 +91,7 @@ void doCommand()
 // bool fifoCmdBufCommandAvailable(char * buf, int size)
 // char fifoCmdBufDequeueChar(char * src_buf, int src_size)
 // void fifoCmdBufDequeueCommand(char * src_buf, int src_size, char * dst_buf, int dst_size)
-// void fifoCmdBufEnqueueCommand(char * src_buf, int src_size, char * dst_buf, char * dst_size)
+// void fifoCmdBufEnqueueString(char * src_buf, int src_size, char * dst_buf, char * dst_size)
 // void fifoCmdBufPeekCommand(char * src_buf, int src_size, char * dst_buf, int dst_size)
 
 void fifoCmdBufClear(char * buf, int size)
@@ -147,16 +147,23 @@ void fifoCmdBufEnqueueChar(char * buf, int size, char add_char)
 {
   char * add_ptr = NULL;
   char * null_ptr = NULL;
-  int space_left = 0;
   int space_used = 0;
 
   null_ptr = (char *)memchr(buf,'\0',size);
-  space_used = null_ptr - buf;
+  if (null_ptr)
+  {
+    space_used = null_ptr - buf;
+  }
+  else
+  {
+    space_used = size;
+  }
   if ((space_used+1) >= size)
   {
     // left shift to make room to add
     memcpy(buf,(buf+1),(size-1));
-    add_ptr = null_ptr - 1;
+    buf[size-1] = '\0'; // should not be needed, but making sure last char is NULL
+    add_ptr = buf + (size-2);
   }
   else
   {
@@ -164,14 +171,14 @@ void fifoCmdBufEnqueueChar(char * buf, int size, char add_char)
   }
   *add_ptr = add_char;
 }
-void fifoCmdBufEnqueueCommand(char * src_buf, int src_size, char * dst_buf, int dst_size)
+void fifoCmdBufEnqueueString(char * src_buf, int src_size, char * dst_buf, int dst_size)
 {
-  int ii;
   int src_strlen = 0;
+
   src_strlen = strlen(src_buf);
-  for (ii=0; ii<src_strlen; ++ii)
+  for (int ii=0; ii<src_strlen; ++ii)
   {
-    fifoCmdBufEnqueueChar(dst_buf, dst_size, *(src_buf+ii));
+    fifoCmdBufEnqueueChar(dst_buf, dst_size, src_buf[ii]);
   }
 }
 void fifoCmdBufPeekCommand(char * src_buf, int src_size, char * dst_buf, int dst_size)
@@ -208,12 +215,13 @@ void timerWrite()
   int write_buf_len = 0;
 
   ++prefix_write_count;
+  memset(write_buf,0,sizeof(write_buf));
   sprintf(write_buf," %d\r",prefix_write_count);
 
   prefix_len = strlen(prefix_string);
-  fifoCmdBufEnqueueCommand(prefix_string,prefix_len,output_buf,IO_BUF_SIZE);
+  fifoCmdBufEnqueueString(prefix_string,prefix_len,output_buf,IO_BUF_SIZE);
   write_buf_len = strlen(write_buf);
-  fifoCmdBufEnqueueCommand(write_buf,write_buf_len,output_buf,IO_BUF_SIZE);
+  fifoCmdBufEnqueueString(write_buf,write_buf_len,output_buf,IO_BUF_SIZE);
 }
 
 // Remove the first character in output_buf and write to serial

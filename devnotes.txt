@@ -5,6 +5,12 @@ ssh 192.168.88.218
 cd ~/dev/pi_arduino_io_1/
 cp -R sketchbook ~/
 
+--- socat connects /dev/ttyUSB0 to TCP port 54321
+socat tcp-l:54321,reuseaddr,fork file:/dev/ttyUSB0,b9600,nonblock,waitlock=/var/run/ttyUSB0.lock
+
+--- socat connect terminal to TCP port 54321
+socat - tcp:localhost:54321
+
 ================== tls cert, tls key
 https://github.com/celluloid/reel/blob/master/lib/reel/server/https.rb
 
