@@ -12,12 +12,21 @@ class PiSock
       puts "*** Connecting to RPi on #{host}:#{port}"
 
       @socket = TCPSocket.new(host, port) # a magic Celluloid::IO socket
+      @arduino_buffer = ''
 
       async.run
     end
 
     def handle_read(msg)
-      puts ("[#{msg}]")
+      line = ''
+      puts ("read [#{msg}]")
+      @arduino_buffer += msg
+      cr_pos = @arduino_buffer.index("\r")
+      if cr_pos
+        line = @arduino_buffer.slice(0..(cr_pos-1))
+        @arduino_buffer = @arduino_buffer.slice((cr_pos+1)..-1)
+        puts "line [#{line}]"
+      end
     end
 
     def run
@@ -27,7 +36,7 @@ class PiSock
       end
     end
 
-    def write_to_pi(msg)
+    def write_to_arduino(msg)
       puts "write #{msg}"
       @socket.write(msg)
     end
@@ -45,7 +54,7 @@ class PrefixTimer
     counter = 1
     every (20) do
       counter += 1
-      Celluloid::Actor[:pi_sock].async.write_to_pi("p#{counter}\r")
+      Celluloid::Actor[:pi_sock].async.write_to_arduino("p#{counter}\r")
     end
   end
 end
