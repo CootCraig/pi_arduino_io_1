@@ -4,7 +4,7 @@ require 'reel'
 require_relative './http_request_router'
 require_relative './request_html'
 
-module ReelHttpsAuthWebsock
+module PiArduinoIo1
   class HttpServer
     attr_reader :host
     attr_reader :port

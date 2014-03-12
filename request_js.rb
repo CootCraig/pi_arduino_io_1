@@ -1,5 +1,6 @@
+require 'log4r'
 
-module ReelHttpsAuthWebsock
+module PiArduinoIo1
   class RequestJs
     include Singleton
     def initialize

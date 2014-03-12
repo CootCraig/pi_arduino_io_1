@@ -1,10 +1,11 @@
 require 'pathname'
 require 'haml'
 
+require_relative './arduino_io'
 require_relative './request_html'
 require_relative './request_js'
 
-module ReelHttpsAuthWebsock
+module PiArduinoIo1
   class HttpRequestRouter
     include Singleton
     def initialize
@@ -15,6 +16,8 @@ module ReelHttpsAuthWebsock
     def request_page(request)
       @logger.debug "path #{request.path}"
       case request.path
+      when '/send' # /send?message=prefix
+        ArduinoIo::send_request(request)
       when %r{js$}
         RequestJs.instance.request_js(request)
       when %r{^/$|html$}

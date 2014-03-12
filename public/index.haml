@@ -1,12 +1,24 @@
 !!! 5
 %head
-  %title RPI HTTPS WSS
+  %title RPI<->Arduino IO
   %script{ :src => 'zepto.min.js' }
   %script{ :src => 'zepto.cookie.min.js' }
 %body
-  %h1 RPI HTTPS WSS from #{(defined? hostname) ? hostname : ''} version #{(defined? version) ? version : ''}
-  %h2 Hello World of Pi
-  #current_time
-    Time updates here
+  %h1 RPI<->Arduino IO from RPi: #{(defined? hostname) ? hostname : ''} version #{(defined? version) ? version : ''}
+  %table
+    %tr
+      %td Prefix to Send:
+      %td 
+        %input#prefix_input{:type => 'text', :value => 'pre' }
+    %tr
+      %td{:colspan => '2'}
+        %button{:id => 'prefix_submit'}
+          Send Prefix to Arduino
+    %tr
+      %td Last Prefix Sent:
+      %td#prefix_sent
+        Never Sent
+  %h2 Last 15 Messages from Arduino. Descending Time
+  %ul#message_list
   %script{ :src => 'index.js' }
 

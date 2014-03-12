@@ -6,7 +6,7 @@ require 'cgi'
 
 require_relative './version'
 
-module ReelHttpsAuthWebsock
+module PiArduinoIo1
   class RequestHtml
     include Singleton
     def initialize
@@ -41,9 +41,11 @@ module ReelHttpsAuthWebsock
         authenticated = false
         query_string = request.query_string || ''
         query_hash = CGI::parse(query_string)
-        login = query_hash['login'][0] || ''
-        password = query_hash['password'][0] || ''
-        authenticated = valididate_login_password(login,password)
+        if query_hash.has_key?('login') && query_hash.has_key?('password')
+          login = query_hash['login'][0] || ''
+          password = query_hash['password'][0] || ''
+          authenticated = valididate_login_password(login,password)
+        end
         if authenticated
           request.respond :'temporary_redirect', {:Location => '/index.html', :'Set-Cookie' => "login=#{login}:#{password}"}, "Authenticated"
         else
@@ -61,7 +63,7 @@ module ReelHttpsAuthWebsock
       end
     end
     def render_haml(request,extra_vars={})
-      haml_vars = {:version => ReelHttpsAuthWebsock::VERSION, :hostname => Socket.gethostname}
+      haml_vars = {:version => PiArduinoIo1::VERSION, :hostname => Socket.gethostname}
       haml_vars.merge!(extra_vars)
 
       if request.path == '/'

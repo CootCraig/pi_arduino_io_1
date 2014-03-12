@@ -6,13 +6,14 @@ require 'log4r'
 require 'log4r/yamlconfigurator'
 require 'nesty'
 
+require_relative './arduino_io'
 require_relative './http_server'
-require_relative './time_server'
+require_relative './message_server'
 require_relative './version'
 
-module ReelHttpsAuthWebsock
+module PiArduinoIo1
 
-  # Root exception for ReelHttpsAuthWebsock.
+  # Root exception for PiArduinoIo1.
   #
   # Nesty is handy to embed an underlying exception.
   class Error < StandardError
@@ -52,7 +53,7 @@ module ReelHttpsAuthWebsock
       Log4r::YamlConfigurator.load_yaml_file @@app_config_file
 
       @@logger = Log4r::Logger['base::App'] || Log4r::Logger['base']
-      @@logger.info "\n\n========= Startup version #{ReelHttpsAuthWebsock::VERSION} ========="
+      @@logger.info "\n\n========= Startup version #{PiArduinoIo1::VERSION} ========="
       @@logger.info "Log4r and application configured from file #{@@app_config_file}"
 
       begin
@@ -61,6 +62,10 @@ module ReelHttpsAuthWebsock
         @@config[:http_host] = @@yaml_config['http_host']
         @@config[:http_port] = @@yaml_config['http_port']
         @@logger.info "http_host #{@@config[:http_host]} http_port #{@@config[:http_port]}"
+
+        @@config[:arduino_host] = @@yaml_config['arduino_host']
+        @@config[:arduino_port] = @@yaml_config['arduino_port']
+        @@logger.info "arduino io socket #{@@config[:arduino_host]} http_port #{@@config[:arduino_port]}"
 
         @@config[:logins] = {}
         @@yaml_config['logins'].each do |login,password|
@@ -97,16 +102,17 @@ module ReelHttpsAuthWebsock
 
     def self.run
       init
-      TimeServer.supervise_as(:time_server)
-      @@logger.info "TimeServer started"
+      ArduinoIo.supervise_as(:arduino_io,@@config[:arduino_host],@@config[:arduino_port])
+      @@logger.info "ArduinoIo started"
+      MessageServer.supervise_as(:message_server)
+      @@logger.info "MessageServer started"
       @@http_server = HttpServer.new(@@config[:http_host],@@config[:http_port],@@tls_certificate,@@tls_key)
       @@logger.info "HttpServer started"
-      puts "https started"
       sleep
     end
 
   end
 end
 
-ReelHttpsAuthWebsock::App.run
+PiArduinoIo1::App.run
 
