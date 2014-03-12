@@ -13,10 +13,22 @@ Zepto(function($){
     if ($('li').length >= 15) {
       $('li').last().remove();
     }
-    $('message_list').prepend('<li class="message_li">' + message + '</li>');
+    $('#message_list').prepend('<li class="message_li">' + message + '</li>');
   };
 
   $( "#prefix_submit" ).click(function() {
+    var prefix = null;
+    prefix = $('#prefix_input').val();
+    $.ajax({
+      'url': '/send',
+      'data': {
+        'message': prefix
+      },
+      'dataType': 'json',
+      'complete': function(jqXHR,textStatus) {
+        var stat = textStatus;
+      },
+    });
   });
 });
 

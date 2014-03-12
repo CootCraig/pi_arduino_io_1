@@ -48,7 +48,7 @@ module PiArduinoIo1
             @logger.debug "received a websocket request path #{request.path} cookie #{cookie}"
             if authenticated
               begin
-                Celluloid::Actor[:time_server].async.add_websocket(request.websocket)
+                Celluloid::Actor[:message_server].async.add_websocket(request.websocket)
               rescue => ex
                 @logger.error "add_websocket #{ex.to_s}\n#{ex.backtrace}"
               end

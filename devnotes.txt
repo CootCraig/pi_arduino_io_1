@@ -2,6 +2,8 @@
 Wireless on Pi
 ssh 192.168.88.218
 
+https://192.168.88.218:4430/
+
 cd ~/dev/pi_arduino_io_1/
 cp -R sketchbook ~/
 
@@ -311,9 +313,36 @@ pika# ls -l /dev/ttyUSB0
 crw-rw---T 1 root dialout 188, 0 Dec 31  1969 /dev/ttyUSB0
 
 ==================
+E, [2014-03-12T08:36:48.510000 #10754300] ERROR -- : thread crashed
+Java::JavaNet::ConnectException: Connection refused
+  sun.nio.ch.SocketChannelImpl.checkConnect(Native Method)
+  sun.nio.ch.SocketChannelImpl.finishConnect(sun/nio/ch/SocketChannelImpl.java:712)
+  java.lang.reflect.Method.invoke(java/lang/reflect/Method.java:483)
+  RUBY.initialize(/opt/jruby/jruby-1.7.11/lib/ruby/gems/shared/bundler/gems/celluloid-io-39e7dc8e7a34/lib/celluloid/io/tcp_socket.rb:92)
+  RUBY.initialize(/opt/coot.net/pi_arduino_io_1/arduino_io.rb:19)
+
 ==================
+craig@pika:/opt/coot.net/pi_arduino_io_1$ jruby app.rb
+/opt/jruby/jruby-1.7.11/lib/ruby/gems/shared/gems/bundler-1.5.3/lib/bundler.rb:297 warning: executable? does not in this environment and will return a dummy value
+app_config_file [/opt/coot.net/pi_arduino_io_1/app.yml]
+W, [2014-03-12T08:47:35.105000 #10754300]  WARN -- : Error accepting SSLSocket: OpenSSL::SSL::SSLError: Unrecognized SSL message, plaintext connection?
+W, [2014-03-12T08:47:41.210000 #10754300]  WARN -- : Error accepting SSLSocket: OpenSSL::SSL::SSLError: Socket closed
+^CD, [2014-03-12T08:47:42.299000 #10754300] DEBUG -- : Terminating 10 actors...
 ==================
+E, [2014-03-12T09:48:35.369000 #10754300] ERROR -- : Actor crashed!
+NoMethodError: undefined method `async' for nil:NilClass
+  /opt/coot.net/pi_arduino_io_1/arduino_io.rb:35:in `handle_read'
+  org/jruby/RubyKernel.java:1965:in `public_send'
+
 ==================
+E, [2014-03-12T10:42:59.971000 #10754300] ERROR -- : Actor crashed!
+NameError: undefined local variable or method `connection' for PiArduinoIo1::ArduinoIo:Class
+  /opt/coot.net/pi_arduino_io_1/arduino_io.rb:73:in `send_request'
+  /opt/coot.net/pi_arduino_io_1/http_request_router.rb:20:in `request_page'
+  /opt/coot.net/pi_arduino_io_1/http_server.rb:59:in `start'
+  /opt/jruby/jruby-1.7.11/lib/ruby/gems/shared/bundler/gems/reel-5afcb7f9a2dd/lib/reel/connection.rb:73:in `each_request'
+  /opt/coot.net/pi_arduino_io_1/http_server.rb:33:in `start'
+
 ==================
 ==================
 ==================

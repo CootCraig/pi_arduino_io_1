@@ -32,7 +32,7 @@ module PiArduinoIo1
         line = @arduino_buffer.slice(0..(terminator_pos-1))
         @arduino_buffer = @arduino_buffer.slice((terminator_pos+1)..-1)
         @logger.debug "message line [#{line}]"
-        Celluloid::Actor[:message_server].async.publish(line)
+        Celluloid::Actor[:message_server].async.publish(line) if Celluloid::Actor[:message_server]
       end
     end
 
@@ -66,11 +66,11 @@ module PiArduinoIo1
         response_body = { :status => 'fail', :log => 'Message required' }
         headers = {}
       end
-      connection.respond :ok, headers, response_body.to_json
+      request.respond :ok, headers, response_body.to_json
     rescue => ex
       response_body = { :status => 'fail', :log => 'Server error' }
       headers = {}
-      connection.respond :internal_server_error, headers, response_body.to_json
+      request.respond :internal_server_error, headers, response_body.to_json
     end
   end
 end

@@ -102,10 +102,10 @@ module PiArduinoIo1
 
     def self.run
       init
-      ArduinoIo.supervise_as(:arduino_io,@@config[:arduino_host],@@config[:arduino_port])
-      @@logger.info "ArduinoIo started"
       MessageServer.supervise_as(:message_server)
       @@logger.info "MessageServer started"
+      ArduinoIo.supervise_as(:arduino_io,@@config[:arduino_host],@@config[:arduino_port])
+      @@logger.info "ArduinoIo started"
       @@http_server = HttpServer.new(@@config[:http_host],@@config[:http_port],@@tls_certificate,@@tls_key)
       @@logger.info "HttpServer started"
       sleep
