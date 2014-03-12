@@ -19,10 +19,12 @@ class PiSock
 
     def handle_read(msg)
       line = ''
-      puts ("read [#{msg}]")
+      puts "handle_read msg [#{msg}]"
       @arduino_buffer += msg
+      puts "arduino_buffer [#{@arduino_buffer}]"
       cr_pos = @arduino_buffer.index("\r")
       if cr_pos
+        puts "<cr> seen at #{cr_pos}"
         line = @arduino_buffer.slice(0..(cr_pos-1))
         @arduino_buffer = @arduino_buffer.slice((cr_pos+1)..-1)
         puts "line [#{line}]"
@@ -32,6 +34,7 @@ class PiSock
     def run
       loop do
         msg = @socket.readpartial(1024)
+        puts "run msg [#{msg}]"
         async.handle_read(msg)
       end
     end
