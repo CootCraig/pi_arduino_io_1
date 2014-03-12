@@ -24,11 +24,10 @@ class PiSock
     puts "handle_read msg [#{msg}]"
     @arduino_buffer += msg
     puts "arduino_buffer [#{@arduino_buffer}]"
-    cr_pos = @arduino_buffer.index(MESSAGE_TERMINATOR_CHAR)
-    if cr_pos
-      puts "<cr> seen at #{cr_pos}"
-      line = @arduino_buffer.slice(0..(cr_pos-1))
-      @arduino_buffer = @arduino_buffer.slice((cr_pos+1)..-1)
+    terminator_pos = @arduino_buffer.index(PiSock::MESSAGE_TERMINATOR_CHAR)
+    if terminator_pos
+      line = @arduino_buffer.slice(0..(terminator_pos-1))
+      @arduino_buffer = @arduino_buffer.slice((terminator_pos+1)..-1)
       puts "line [#{line}]"
     end
   end
@@ -36,7 +35,6 @@ class PiSock
   def run
     loop do
       msg = @socket.readpartial(1024)
-      puts "run msg [#{msg}]"
       async.handle_read(msg)
     end
   end
@@ -59,7 +57,7 @@ class PrefixTimer
     counter = 1
     every (20) do
       counter += 1
-      Celluloid::Actor[:pi_sock].async.write_to_arduino("p#{counter}#{MESSAGE_TERMINATOR_CHAR}")
+      Celluloid::Actor[:pi_sock].async.write_to_arduino("p#{counter}#{PiSock::MESSAGE_TERMINATOR_CHAR}")
     end
   end
 end
