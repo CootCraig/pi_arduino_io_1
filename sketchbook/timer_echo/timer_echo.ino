@@ -7,7 +7,7 @@
  * The 99 is actually a count of how many writes have been done since the
  * prefix was changed.
  *
- * Send "different prefix\r" to the Arduio will change the timer output to
+ * Sending "different prefix<MESSAGE_TERMINATOR_CHAR>" to the Arduio will change the timer output to
  * different prefix 1
  *
  */
@@ -17,6 +17,8 @@
 
 // the timer object
 SimpleTimer timer;
+
+#define MESSAGE_TERMINATOR_CHAR '\f'
 
 #define IO_BUF_SIZE 200
 char cmd_buf[IO_BUF_SIZE];
@@ -68,7 +70,7 @@ void doCommand()
     if (cmd_len > 1)
     {
       // The only command for now is to change the prefix_string
-      cr_ptr = (char *)memchr(cmd_buf,'\r',IO_BUF_SIZE);
+      cr_ptr = (char *)memchr(cmd_buf,MESSAGE_TERMINATOR_CHAR,IO_BUF_SIZE);
       if (cr_ptr)
       {
         *cr_ptr = '\0'; // Do not want <cr> in prefix_string
@@ -103,7 +105,7 @@ bool fifoCmdBufCommandAvailable(char * buf, int size)
 {
   bool available = false;
   char * cr_ptr = NULL;
-  cr_ptr = (char *)memchr(buf,'\r',(size-1));
+  cr_ptr = (char *)memchr(buf,MESSAGE_TERMINATOR_CHAR,(size-1));
   if (cr_ptr)
   {
     available = true;
@@ -131,7 +133,7 @@ void fifoCmdBufDequeueCommand(char * src_buf, int src_size, char * dst_buf, int 
   char xfer_char = '\0';
 
   memset(dst_buf,0,dst_size);
-  cr_ptr = (char *)memchr(src_buf,'\r',(src_size-1));
+  cr_ptr = (char *)memchr(src_buf,MESSAGE_TERMINATOR_CHAR,(src_size-1));
   if (cr_ptr)
   {
     cmd_len = (cr_ptr-src_buf) + 1;
@@ -188,7 +190,7 @@ void fifoCmdBufPeekCommand(char * src_buf, int src_size, char * dst_buf, int dst
   char xfer_char = '\0';
 
   memset(dst_buf,0,dst_size);
-  cr_ptr = (char *)memchr(src_buf,'\r',(src_size-1));
+  cr_ptr = (char *)memchr(src_buf,MESSAGE_TERMINATOR_CHAR,(src_size-1));
   if (cr_ptr)
   {
     cmd_len = (cr_ptr-src_buf) + 1;
@@ -217,7 +219,7 @@ void timerWrite()
 
   ++prefix_write_count;
   memset(write_buf,0,sizeof(write_buf));
-  sprintf(write_buf," %d\r",prefix_write_count);
+  sprintf(write_buf," %d%c",prefix_write_count,MESSAGE_TERMINATOR_CHAR);
 
   memset(timer_write_buf,0,TIMER_WRITE_BUF_SIZE);
   prefix_len = strlen(prefix_string);
