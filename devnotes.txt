@@ -10,6 +10,8 @@ cp -R sketchbook ~/
 --- socat connects /dev/ttyUSB0 to TCP port 54321
 socat tcp-l:54321,reuseaddr,fork file:/dev/ttyUSB0,b9600,nonblock,raw,echo=0,waitlock=/var/run/ttyUSB0.lock
 
+socat tcp-listen:54321,reuseaddr,fork file:/dev/Diavolino,raw,echo=0,b9600,waitlock=/var/run/Diavolino.lock
+
 --- socat connect terminal to TCP port 54321
 socat - tcp:localhost:54321
 
@@ -344,9 +346,123 @@ NameError: undefined local variable or method `connection' for PiArduinoIo1::Ard
   /opt/coot.net/pi_arduino_io_1/http_server.rb:33:in `start'
 
 ==================
+FFI not available: on Raspberry Pi ARM linux JRuby
+
+require 'spoon' fails on Raspberry Pi ARM linux JRuby
+
+---- system notes
+$ uname -a
+Linux pika 3.10-3-rpi #1 Debian 3.10.11-1+rpi4 (2014-01-24) armv6l GNU/Linux
+
+$ jruby -v
+jruby 1.7.11 (1.9.3p392) 2014-02-24 86339bb on Java HotSpot(TM) Client VM 1.8.0-b129 +indy [linux-arm]
+
+-------------------------------- the Exception trace
+
+LoadError: Could not load FFI Provider: (NotImplementedError) FFI not available: null
+ See http://jira.codehaus.org/browse/JRUBY-4583
+  require at org/jruby/RubyKernel.java:1085
+   (root) at /opt/jruby/jruby-1.7.11/lib/ruby/shared/ffi/ffi.rb:69
+  require at org/jruby/RubyKernel.java:1085
+   (root) at /opt/jruby/jruby-1.7.11/lib/ruby/shared/ffi.rb:1
+  require at org/jruby/RubyKernel.java:1085
+   (root) at /opt/jruby/jruby-1.7.11/lib/ruby/shared/ffi.rb:1
+  require at org/jruby/RubyKernel.java:1085
+   (root) at /opt/jruby/jruby-1.7.11/lib/ruby/gems/shared/gems/spoon-0.0.4/lib/spoon/unix.rb:1
+  require at org/jruby/RubyKernel.java:1085
+   (root) at spoon_socat.rb:8
+
+--- From Gemfile.lock
+GEM                                                                                                                                                                                                                                          
+  remote: http://rubygems.org/                                                                                                                                                                                                               
+  specs:                                                                                                                                                                                                                                     
+...
+    ffi (1.9.3-java)                                                                                                                                                                                                                         
+...
+    spoon (0.0.4)                                                                                                                                                                                                                            
+      ffi    
+...
+
+--- From the script
+require 'rubygems'                                                                                                                                                                                                                           
+require 'bundler/setup'                                                                                                                                                                                                                      
+                                                                                                                                                                                                                                             
+require 'celluloid/autostart'                                                                                                                                                                                                                
+require 'celluloid/io'                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                             
+require 'spoon'  <<<<<<<<<<<<<<<<<<<<<< line 8 - spoon_socat.rb:8
+                                                                                                                                                                                                                                             
+class SocatSpawnAndWait                                                                                                                                                                                                                      
+  include 'Celluloid'                                                                                                                                                                                                                        
+  include 'Celluloid::Notifications'                                                                                                                                                                                                         
+                                                                                                                                                                                                                                             
+  DEFAULT_SPAWN_ARGV %w(/usr/bin/socat tcp-listen:54321,reuseaddr,fork file:/dev/Diavolino,raw,echo=0,b9600,waitlock=/var/run/Diavolino.lock')                                                                                               
+                                                                                                                                                                                                                                             
+  def initialize(aspawn_argv=DEFAULT_SPAWN_ARGV)                                                                                                                                                                                             
+    @spawn_argv = aspawn_argv                                                                                                                                                                                                                
+  end                                                                                                                                                                                                                                        
+  def run                                                                                                                                                                                                                                    
+    file_actions = Spoon::FileActions.new                                                                                                                                                                                                    
+    spawn_attr = Spoon::SpawnAttributes.new                                                                                                                                                                                                  
+      spawn_pid = Spoon.posix_spawn(SPAWN_PATH, file_actions, spawn_attr, @spawn_argv)                                                                                                                                                       
+    wait_pid,wait_status = Process.waitpid(spawn_pid)                                                                                                                                                                                        
+    [wait_pid,wait_status]                                                                                                                                                                                                                   
+  end                                                                                                                                                                                                                                        
+end     
+
+span_and_wait = SocatspawnAndWait.new                                                                                                                                                                                                        
+span_and_wait.run       
+
+
+
+craig@pika:/opt/coot.net/pi_arduino_io_1/ruby_tests$ jruby spoon_socat.rb 
+/opt/jruby/jruby-1.7.11/lib/ruby/gems/shared/gems/bundler-1.5.3/lib/bundler.rb:297 warning: executable? does not in this environment and will return a dummy value
+LoadError: Could not load FFI Provider: (NotImplementedError) FFI not available: null
+ See http://jira.codehaus.org/browse/JRUBY-4583
+  require at org/jruby/RubyKernel.java:1085
+   (root) at /opt/jruby/jruby-1.7.11/lib/ruby/shared/ffi/ffi.rb:69
+  require at org/jruby/RubyKernel.java:1085
+   (root) at /opt/jruby/jruby-1.7.11/lib/ruby/shared/ffi.rb:1
+  require at org/jruby/RubyKernel.java:1085
+   (root) at /opt/jruby/jruby-1.7.11/lib/ruby/shared/ffi.rb:1
+  require at org/jruby/RubyKernel.java:1085
+   (root) at /opt/jruby/jruby-1.7.11/lib/ruby/gems/shared/gems/spoon-0.0.4/lib/spoon/unix.rb:1
+  require at org/jruby/RubyKernel.java:1085
+   (root) at spoon_socat.rb:8
+
 ==================
+https://logstash.jira.com/browse/LOGSTASH-1227
+
+When I started the logstash on linux 32-bit it outputs error logs like this:
+Exception in thread "main" org.jruby.exceptions.RaiseException: (LoadError) Could not load FFI Provider: (NotImplementedError) FFI not available: null
+See http://jira.codehaus.org/browse/JRUBY-4583
+at org.jruby.RubyKernel.require(org/jruby/RubyKernel.java:1027)
+
+Richard Pijnenburg added a comment - 13/Sep/13 6:24 AM
+Hi,
+This is caused when the /tmp is mounted with certain mount options.
+If you provide '-Djava.io.tmpdir=' to an other directory this should solve it.
+
 ==================
-==================
+https://github.com/jruby/jruby/issues/1302
+
+JRuby fails to load FFI support with obscure error when /tmp is not writable #1302
+
+$ sudo chmod 1775 /tmp
+$ java -Djruby.native.verbose=true -jar jruby-complete.jar -rffi -e :ok
+Failed to load native POSIX impl; falling back on Java impl. Stacktrace follows.
+java.lang.UnsatisfiedLinkError: could not load FFI provider jnr.ffi.provider.jffi.Provider
+        at jnr.ffi.provider.InvalidProvider$1.loadLibrary(InvalidProvider.java:30)
+
+$ sudo chmod 1777 /tmp
+$ java -Djruby.native.verbose=true -jar jruby-complete.jar -rffi -e :ok
+Successfully loaded native POSIX impl.
+I noticed this when I accidentally changed permissions for /tmp. A more informative message would be helpful. :)o
+
+================== But look at permission of /tmp on pika
+craig@pika:/opt/jruby/jruby$ ls -ld /tmp
+drwxrwxrwt 3 root root 60 Mar 14 14:17 /tmp
+
 ==================
 ==================
 ==================
