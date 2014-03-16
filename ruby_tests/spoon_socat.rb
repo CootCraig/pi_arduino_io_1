@@ -253,6 +253,21 @@ class AppActor
     puts "AppActor.start_arduino_io_test wait for start returned"
     puts "AppActor.start_arduino_io_test Start ArduinoIo"
     ArduinoIo.supervise_as(ArduinoIo::ACTOR_SYMBOL,'localhost',54321)
+    PrefixTimer.new
+  end
+end
+
+class PrefixTimer
+  include Celluloid
+
+  ACTOR_SYMBOL = :prefix_timer
+
+  def initialize
+    @counter = 1
+    every (30) do
+      @counter += 1
+      Celluloid::Actor[ArduinoIo::ACTOR_SYMBOL].async.write_to_arduino("p#{@counter}")
+    end
   end
 end
 
