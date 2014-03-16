@@ -13,12 +13,14 @@
  */
 #include <stdio.h>
 #include <string.h>
+
 #include <SimpleTimer.h>
 
 // the timer object
 SimpleTimer timer;
 
-#define MESSAGE_TERMINATOR_CHAR '\f'
+#define MESSAGE_START_CHAR '\f'
+#define MESSAGE_TERMINATOR_CHAR '\v'
 
 #define IO_BUF_SIZE 200
 char cmd_buf[IO_BUF_SIZE];
@@ -100,7 +102,7 @@ void fifoCmdBufClear(char * buf, int size)
 {
   memset(buf,0,size);
 }
-// A command is available if a <cr> is in the buf
+// A command is available if a MESSAGE_TERMINATOR_CHAR is in the buf
 bool fifoCmdBufCommandAvailable(char * buf, int size)
 {
   bool available = false;
@@ -128,19 +130,34 @@ char fifoCmdBufDequeueChar(char * src_buf, int src_size)
 // destructive of dst_buf
 void fifoCmdBufDequeueCommand(char * src_buf, int src_size, char * dst_buf, int dst_size)
 {
-  int cmd_len = 0;
-  char * cr_ptr = NULL;
+  int cmd_prefix_len = 0;
+  bool start_char_seen = 0;
+  char * term_ptr = NULL;
   char xfer_char = '\0';
 
   memset(dst_buf,0,dst_size);
-  cr_ptr = (char *)memchr(src_buf,MESSAGE_TERMINATOR_CHAR,(src_size-1));
-  if (cr_ptr)
+  term_ptr = (char *)memchr(src_buf,MESSAGE_TERMINATOR_CHAR,(src_size-1));
+  if (term_ptr)
   {
-    cmd_len = (cr_ptr-src_buf) + 1;
-    for (int ii=0; ii<cmd_len; ++ii)
+    cmd_prefix_len = (term_ptr-src_buf) + 1;
+    for (int ii=0; ii<cmd_prefix_len; ++ii)
     {
       xfer_char = fifoCmdBufDequeueChar(src_buf,src_size);
-      fifoCmdBufEnqueueChar(dst_buf, dst_size, xfer_char);
+      if (xfer_char == MESSAGE_START_CHAR)
+      {
+        start_char_seen = 1;
+        // handle multiple MESSAGE_START_CHAR
+        // by clearing any non-NULL characters at start
+        for (int clear_i=0; dst_buf[clear_i] && (clear_i<dst_size); ++clear_i)
+        {
+          dst_buf[clear_i] = '\0';
+        }
+        continue;
+      }
+      else if (start_char_seen)
+      {
+        fifoCmdBufEnqueueChar(dst_buf, dst_size, xfer_char);
+      }
     }
   }
 }
@@ -214,18 +231,33 @@ void timerWrite()
 {
   int prefix_len = 0;
   int timer_write_len = 0;
-  char write_buf[80];
-  int write_buf_len = 0;
+  char prefix_write_count_buf[80]; // ' ' + prefix_write_count
+  int prefix_write_count_buf_len = 0;
 
   ++prefix_write_count;
-  memset(write_buf,0,sizeof(write_buf));
-  sprintf(write_buf," %d%c",prefix_write_count,MESSAGE_TERMINATOR_CHAR);
 
-  memset(timer_write_buf,0,TIMER_WRITE_BUF_SIZE);
+  // Buffer up the prefix_write_count
+  memset(prefix_write_count_buf,0,sizeof(prefix_write_count_buf));
+  sprintf(prefix_write_count_buf," %d",prefix_write_count);
+
+  // Clear the message buffer
+  memset(timer_write_buf,0,sizeof(timer_write_buf));
+
+  // Start with MESSAGE_START_CHAR
+  fifoCmdBufEnqueueChar(timer_write_buf, sizeof(timer_write_buf), MESSAGE_START_CHAR); 
+
+  // Add the prefix_string
   prefix_len = strlen(prefix_string);
-  fifoCmdBufEnqueueString(prefix_string,prefix_len,timer_write_buf,TIMER_WRITE_BUF_SIZE);
-  write_buf_len = strlen(write_buf);
-  fifoCmdBufEnqueueString(write_buf,write_buf_len,timer_write_buf,TIMER_WRITE_BUF_SIZE);
+  fifoCmdBufEnqueueString(prefix_string,prefix_len, timer_write_buf, sizeof(timer_write_buf));
+
+  // Add the prefix_write_count
+  prefix_write_count_buf_len = strlen(prefix_write_count_buf);
+  fifoCmdBufEnqueueString(prefix_write_count_buf,sizeof(prefix_write_count_buf), timer_write_buf, sizeof(timer_write_buf));
+
+  // End with MESSAGE_TERMINATOR_CHAR
+  fifoCmdBufEnqueueChar(timer_write_buf, sizeof(timer_write_buf), MESSAGE_TERMINATOR_CHAR); 
+
+  // And queue up the message to be sent to the host
   timer_write_len = strlen(timer_write_buf);
   fifoCmdBufEnqueueString(timer_write_buf,timer_write_len,output_buf,IO_BUF_SIZE);
 }

@@ -519,6 +519,41 @@ if self was not terminated by an uncaught signal).
 ==================
 https://github.com/jruby/jruby/issues/1561
 ==================
+spoon_socat.rb
+  app.start_arduino_io_test
+
+
+craig@lug:~/dev/pi_arduino_io_1/ruby_tests$ jruby spoon_socat.rb 
+AppActor.start_arduino_io_test start SocatManager
+AppActor.start_arduino_io_test Request that SocatManager run socat
+AppActor.start_arduino_io_test wait for start
+SocatManager.run calling SocatSpawnAndWait.run
+AppActor.start_arduino_io_test wait for start returned
+AppActor.start_arduino_io_test Start ArduinoIo
+*** Connecting to Arduino on socket localhost:54321
+2014/03/15 22:47:12 socat[14540] E mkstemp("/var/run/Diavolino.lock.KAj13b"): Permission denied
+E, [2014-03-15T22:47:12.194000 #14489] ERROR -- : Actor crashed!
+EOFError: End of file reached
+	org/jruby/RubyIO.java:2856:in `read_nonblock'
+	/opt/ruby/jruby-1.7.11/lib/ruby/gems/shared/bundler/gems/celluloid-io-39e7dc8e7a34/lib/celluloid/io/stream.rb:41:in `sysread'
+	/opt/ruby/jruby-1.7.11/lib/ruby/gems/shared/bundler/gems/celluloid-io-39e7dc8e7a34/lib/celluloid/io/stream.rb:386:in `synchronize'
+	/opt/ruby/jruby-1.7.11/lib/ruby/gems/shared/bundler/gems/celluloid-io-39e7dc8e7a34/lib/celluloid/io/stream.rb:39:in `sysread'
+	/opt/ruby/jruby-1.7.11/lib/ruby/gems/shared/bundler/gems/celluloid-io-39e7dc8e7a34/lib/celluloid/io/stream.rb:125:in `readpartial'
+	spoon_socat.rb:177:in `run'
+	org/jruby/RubyKernel.java:1521:in `loop'
+	spoon_socat.rb:176:in `run'
+	org/jruby/RubyKernel.java:1965:in `public_send'
+	/opt/ruby/jruby-1.7.11/lib/ruby/gems/shared/bundler/gems/celluloid-f5edcf9c1130/lib/celluloid/calls.rb:26:in `dispatch'
+	/opt/ruby/jruby-1.7.11/lib/ruby/gems/shared/bundler/gems/celluloid-f5edcf9c1130/lib/celluloid/calls.rb:122:in `dispatch'
+	/opt/ruby/jruby-1.7.11/lib/ruby/gems/shared/bundler/gems/celluloid-f5edcf9c1130/lib/celluloid/cell.rb:60:in `invoke'
+	/opt/ruby/jruby-1.7.11/lib/ruby/gems/shared/bundler/gems/celluloid-f5edcf9c1130/lib/celluloid/cell.rb:71:in `task'
+	/opt/ruby/jruby-1.7.11/lib/ruby/gems/shared/bundler/gems/celluloid-f5edcf9c1130/lib/celluloid/actor.rb:362:in `task'
+	/opt/ruby/jruby-1.7.11/lib/ruby/gems/shared/bundler/gems/celluloid-f5edcf9c1130/lib/celluloid/tasks.rb:55:in `initialize'
+	/opt/ruby/jruby-1.7.11/lib/ruby/gems/shared/bundler/gems/celluloid-f5edcf9c1130/lib/celluloid/tasks/task_fiber.rb:15:in `create'
+*** Connecting to Arduino on socket localhost:54321
+2014/03/15 22:47:12 socat[14541] E mkstemp("/var/run/Diavolino.lock.EYmO5m"): Permission denied
+E, [2014-03-15T22:47:12.236000 #14489] ERROR -- : Actor crashed!
+
 ==================
 ==================
 ==================
