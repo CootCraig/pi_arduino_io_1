@@ -28,7 +28,7 @@ class SocatSpawnAndWait
   SOCAT_STARTED_TOPIC = 'socat_started_topic'
   SOCAT_ENDED_TOPIC = 'socat_ended_topic'
   SPAWN_PATH = '/usr/bin/env'
-  DEFAULT_SPAWN_ARGV = %w(env /usr/bin/socat tcp-listen:54321,reuseaddr,fork file:/dev/Diavolino,raw,echo=0,b9600,waitlock=/var/run/Diavolino.lock)
+  DEFAULT_SPAWN_ARGV = %w(env /usr/bin/socat tcp-listen:54321,reuseaddr,fork file:/dev/Diavolino,raw,echo=0,b9600,waitlock=/opt/run/Diavolino.lock)
 
 
   def initialize(aspawn_argv=DEFAULT_SPAWN_ARGV)
@@ -124,7 +124,9 @@ class SocatManager
   end
 end
 
-class SocketArduinoIo
+class ArduinoIo
+  include Celluloid::IO
+
   # Rejected \a BEL 7 \007
   # Rejected \t TAB 9 \011
   # Rejected \e ESC 27 \033
@@ -132,8 +134,71 @@ class SocketArduinoIo
   # Consider \v Vertical Tab 11 \013
   # Consider \f Form Feed 12 \014
 
-  MESSAGE_START_CHAR = ""
-  MESSAGE_TERMINATOR_CHAR  = "\f"
+  MESSAGE_START_CHAR = "\f"
+  MESSAGE_TERMINATOR_CHAR  = "\v"
+
+  ACTOR_SYMBOL = :arduino_io
+
+  def initialize(host, port)
+    puts "*** Connecting to Arduino on socket #{host}:#{port}"
+
+    @socket = TCPSocket.new(host, port) # a magic Celluloid::IO socket
+    @arduino_buffer = ''
+
+    async.run
+  end
+
+  def handle_read(msg_partial)
+    # puts "ArduinoIo.handle_read msg_partial [#{msg_partial}]"
+    @arduino_buffer += msg_partial
+    puts "ArduinoIo.handle_read arduino_buffer [#{@arduino_buffer.dump}]"
+    terminator_pos = @arduino_buffer.index(ArduinoIo::MESSAGE_TERMINATOR_CHAR)
+    if terminator_pos
+      msg_start = @arduino_buffer.slice(0..(terminator_pos-1))
+      @arduino_buffer = @arduino_buffer.slice((terminator_pos+1)..(-1))
+      start_pos = msg_start.index(ArduinoIo::MESSAGE_START_CHAR)
+      if start_pos
+        msg = msg_start.slice((start_pos+1)..(-1))
+        puts "ArduinoIo.handle_read message [#{msg.dump}] start and stop seen"
+        if start_pos > 0
+          fragment = msg_start.slice(0..(start_pos-1))
+          if fragment.length > 0
+            puts "ArduinoIo.handle_read fragment [#{fragment.dump}] fragment before message"
+          end
+        end
+      else
+        fragment = msg_start
+        puts "ArduinoIo.handle_read fragment [#{fragment.dump}] end seen, but no start"
+      end
+    end
+  end
+
+  def run
+    loop do
+      begin
+        msg = @socket.readpartial(1024)
+        async.handle_read(msg)
+      rescue EOFError => ex
+        # EOFError: End of file reached
+        puts "readpartial EOFError exception"
+        exit 99
+      rescue => ex
+        puts "readpartial exception class #{ex.class}"
+        exit 99
+      end
+    end
+  end
+
+  def write_to_arduino(msg)
+    puts "write <start>#{msg}<end>"
+    @socket.write("#{ArduinoIo::MESSAGE_START_CHAR}#{msg}#{ArduinoIo::MESSAGE_TERMINATOR_CHAR}")
+    @socket.write(msg)
+  end
+
+  def shutdown
+    @socket.close
+  rescue
+  end
 end
 
 class AppActor
@@ -178,12 +243,24 @@ class AppActor
   end
 
   def start_arduino_io_test
-    raise "start_arduino_io_test not implemented"
+    puts "AppActor.start_arduino_io_test start SocatManager"
+    SocatManager.supervise_as(SocatManager::ACTOR_SYMBOL)
+    started_condition = Celluloid::Condition.new
+    puts "AppActor.start_arduino_io_test Request that SocatManager run socat"
+    Celluloid::Actor[SocatManager::ACTOR_SYMBOL].async.run(started_condition)
+    puts "AppActor.start_arduino_io_test wait for start"
+    started_condition.wait
+    puts "AppActor.start_arduino_io_test wait for start returned"
+    puts "AppActor.start_arduino_io_test Start ArduinoIo"
+    ArduinoIo.supervise_as(ArduinoIo::ACTOR_SYMBOL,'localhost',54321)
   end
-
 end
 
 app = AppActor.new
-app.start_socat_test
+if false
+  app.start_socat_test
+else
+  app.start_arduino_io_test
+end
 sleep
 
