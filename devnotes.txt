@@ -464,7 +464,60 @@ craig@pika:/opt/jruby/jruby$ ls -ld /tmp
 drwxrwxrwt 3 root root 60 Mar 14 14:17 /tmp
 
 ==================
+http://ruby-doc.org/core-1.9.3/Process/Status.html
+
+Process::Status
+
+Process::Status encapsulates the information on the status of a running
+or terminated system process. The built-in variable $? is either nil or
+a Process::Status object.
+
+Posix systems record information on processes using a 16-bit integer. The
+lower bits record the process status (stopped, exited, signaled) and
+the upper bits possibly contain additional information (for example
+the program's return code in the case of exited processes). Pre Ruby
+1.8, these bits were exposed directly to the Ruby program. Ruby
+now encapsulates these in a Process::Status object. To maximize
+compatibility, however, these objects retain a bit-oriented interface. In
+the descriptions that follow, when we talk about the integer value of
+stat, we're referring to this 16 bit value.
+
+exited? → true or false
+Returns true if stat exited normally (for example using an exit() call
+or finishing the program).
+
+exitstatus → fixnum or nil
+Returns the least significant eight bits of the return code of stat. Only
+available if exited? is true.
+
+inspect → string
+Override the inspection method.
+p $?.inspect #=> "#<Process::Status: pid 12861 exit 1>"
+
+pid → fixnum
+Returns the process ID that this status object represents.
+
+signaled? → true or false
+Returns true if stat terminated because of an uncaught signal.
+
+stopped? → true or false click to toggle source
+Returns true if this process is stopped. This is only returned if the
+corresponding wait call had the WUNTRACED flag set.
+
+stopsig → fixnum or nil
+Returns the number of the signal that caused stat to stop (or nil if
+self is not stopped).
+
+success? → true, false or nil
+Returns true if stat is successful, false if not. Returns nil if
+exited? is not true.
+
+termsig → fixnum or nil
+Returns the number of the signal that caused stat to terminate (or nil
+if self was not terminated by an uncaught signal).
+
 ==================
+https://github.com/jruby/jruby/issues/1561
 ==================
 ==================
 ==================

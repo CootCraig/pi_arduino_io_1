@@ -15,7 +15,7 @@ GIT
 
 GIT
   remote: https://github.com/celluloid/reel.git
-  revision: 5afcb7f9a2ddd966dc960c612ddb9c5c2fbd5f41
+  revision: 7b84ac2554a03318bfc6741dc121cb2ab55530fa
   specs:
     reel (0.5.0.pre)
       celluloid (>= 0.15.1)
@@ -26,7 +26,7 @@ GIT
 
 GIT
   remote: https://github.com/tarcieri/http.git
-  revision: d2c5a1ded3ebaa82e5dc34142e7777c3a19c674e
+  revision: 834217ff68a6665d7945d2301295eaf57317c724
   specs:
     http (0.6.0.pre)
       http_parser.rb (~> 0.6.0)
@@ -40,30 +40,23 @@ GEM
     ffi (1.9.3-java)
     haml (4.0.5)
       tilt
-    hitimes (1.2.1)
     hitimes (1.2.1-java)
     htmlentities (4.3.1)
     http-cookie (1.0.2)
       domain_name (~> 0.5)
-    http_parser.rb (0.6.0)
     http_parser.rb (0.6.0-java)
     jruby-openssl (0.9.4)
       bouncy-castle-java (>= 1.5.0147)
-    json (1.8.1)
     json (1.8.1-java)
     log4r (1.1.10)
     nesty (1.0.2)
-    nio4r (1.0.0)
     nio4r (1.0.0-java)
     spoon (0.0.4)
       ffi
     tilt (2.0.0)
     timers (2.0.0)
       hitimes
-    unf (0.1.3)
-      unf_ext
     unf (0.1.3-java)
-    unf_ext (0.0.6)
     websocket_parser (0.1.6)
     yard (0.8.7.3)
 
