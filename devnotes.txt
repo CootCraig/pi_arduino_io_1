@@ -23,6 +23,16 @@ options are
 # @option options [String] :key  the server's TLS key
 
 ==================
+If you want to ignore whole folder, except some specific files, then write:
+
+MyFolder/*
+!MyFolder/CoolFile.txt
+This won't work:
+
+MyFolder/
+!MyFolder/CoolFile.txt
+==================
+
 http://wiki.centos.org/HowTos/Https
 
 . Generate a self-signed certificate
