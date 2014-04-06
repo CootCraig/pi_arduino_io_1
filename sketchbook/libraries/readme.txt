@@ -1,10 +1,7 @@
-readme.txt
-RFM69
-RTClib
-SFE_TSL2561
-SimpleTimer
-SPIFlash
 ====================
+FifoMessageBuffer
+git@github.com:CootCraig/FifoMessageBuffer.git
+
 RFM69
 origin	https://github.com/LowPowerLab/RFM69.git (fetch)
 

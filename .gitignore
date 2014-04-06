@@ -17,3 +17,7 @@ app.yml
 .yardoc
 _yardoc
 doc/
+
+sketchbook/libraries/*
+!sketchbook/libraries/readme.txt
+
