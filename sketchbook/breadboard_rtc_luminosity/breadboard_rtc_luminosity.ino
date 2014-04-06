@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "FifoMessageBuffer.h"
 #include "RTClib.h"
 #include <SFE_TSL2561.h>
 #include <SimpleTimer.h>
